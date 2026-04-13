@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>QC — EIGHTYDAYS</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0a;--surface:#111111;--surface2:#181818;--border:#252525;
+  --gold:#C9A84C;--gold-dim:#7a6230;--red:#E03E3E;--orange:#E07C3E;
+  --green:#3DBE7A;--white:#F0EDE6;--gray:#888888;--gray2:#333333;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh;font-size:20px;}
+
+/* PIN */
+#pinScreen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:24px;}
+.pin-logo{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:6px;}
+.pin-logo span{color:var(--gold);}
+.pin-sub{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:3px;color:var(--gray);text-transform:uppercase;}
+.pin-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;width:320px;max-width:92vw;}
+.pin-lbl{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gray);text-align:center;margin-bottom:18px;}
+.pin-dots{display:flex;justify-content:center;gap:14px;margin-bottom:22px;}
+.pin-dot{width:13px;height:13px;border-radius:50%;border:2px solid var(--border);transition:all .2s;}
+.pin-dot.filled{background:var(--gold);border-color:var(--gold);}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.pbn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:26px;padding:16px;cursor:pointer;text-align:center;transition:all .15s;user-select:none;}
+.pbn:active{background:var(--gold);color:#000;}
+.pin-err{color:var(--red);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-align:center;margin-top:10px;height:14px;}
+.pin-connecting{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--gray);}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--border);background:#0a0a0a;position:sticky;top:0;z-index:100;gap:12px;flex-wrap:wrap;}
+.logo-t{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:4px;}
+.logo-t span{color:var(--gold);}
+.logo-badge{font-family:'DM Mono',monospace;font-size:14px;letter-spacing:2px;color:var(--gray);text-transform:uppercase;border-left:1px solid var(--border);padding-left:10px;margin-left:10px;}
+.tabs{display:flex;gap:3px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px;}
+.tab{font-family:'DM Mono',monospace;font-size:15px;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;border-radius:4px;cursor:pointer;color:var(--gray);border:none;background:transparent;transition:all .2s;white-space:nowrap;}
+.tab.active{background:var(--gold);color:#000;}
+.tab:hover:not(.active){color:var(--white);}
+.role-badge{font-family:'DM Mono',monospace;font-size:15px;letter-spacing:1px;color:var(--gray);border:1px solid var(--border);padding:5px 10px;border-radius:20px;}
+.logout-btn{background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--gray);font-family:'DM Mono',monospace;font-size:14px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;cursor:pointer;transition:all .2s;}
+.logout-btn:hover{border-color:var(--red);color:var(--red);}
+
+/* SHOP TABS */
+.shop-tabs-wrap{padding:12px 18px 0;border-bottom:1px solid var(--border);background:var(--surface);}
+.shop-tabs{display:flex;}
+.shop-tab{font-family:'DM Mono',monospace;font-size:16px;letter-spacing:2px;text-transform:uppercase;padding:9px 22px;cursor:pointer;color:var(--gray);border-bottom:2px solid transparent;transition:all .2s;}
+.shop-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+/* PAGES */
+.page{display:none;padding:18px;}
+.page.active{display:block;}
+
+/* WEEK NAV */
+.week-nav{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.wnav-btn{width:32px;height:32px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:border-color .2s;}
+.wnav-btn:hover{border-color:var(--gold);color:var(--gold);}
+.wnav-label{font-family:'DM Mono',monospace;font-size:17px;letter-spacing:2px;color:var(--white);}
+.sec-label{font-family:'DM Mono',monospace;font-size:16px;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:10px;}
+
+/* REPORT CARDS */
+.reports-list{display:flex;flex-direction:column;gap:10px;}
+.rc{border:2px solid var(--border);border-radius:10px;background:var(--surface);cursor:pointer;transition:border-color .2s;overflow:hidden;}
+.rc.s-green{border-color:rgba(61,190,122,0.5);}
+.rc.s-yellow{border-color:rgba(201,168,76,0.5);}
+.rc.s-red{border-color:rgba(224,62,62,0.5);}
+.rc:hover{border-color:var(--gold);}
+.rc-head{display:flex;align-items:center;gap:12px;padding:12px 16px;}
+.rc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.rc-dot.green{background:var(--green);}
+.rc-dot.yellow{background:var(--gold);}
+.rc-dot.red{background:var(--red);}
+.rc-time{font-family:'DM Mono',monospace;font-size:16px;color:var(--gray);}
+.rc-barber{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:1px;flex:1;}
+.rc-svc{font-family:'DM Mono',monospace;font-size:16px;color:var(--gold-dim);letter-spacing:1px;}
+.rc-score{font-family:'DM Mono',monospace;font-size:16px;padding:4px 10px;border-radius:10px;border:1px solid;}
+.rc-score.green{border-color:var(--green);color:var(--green);}
+.rc-score.yellow{border-color:var(--gold);color:var(--gold);}
+.rc-score.red{border-color:var(--red);color:var(--red);}
+.rc-appr{font-family:'DM Mono',monospace;font-size:15px;color:var(--gray);}
+.rc-appr.yes{color:var(--green);}
+.rc-qcname{font-family:'DM Mono',monospace;font-size:15px;color:var(--gray);}
+.rc-del-btn{background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--gray);font-size:16px;padding:4px 8px;cursor:pointer;transition:all .2s;flex-shrink:0;}
+.rc-del-btn:hover{border-color:var(--red);color:var(--red);background:rgba(224,62,62,0.1);}
+.add-report-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:transparent;border:2px dashed var(--border);border-radius:10px;color:var(--gray);font-family:'DM Mono',monospace;font-size:16px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:4px;}
+.add-report-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+/* MODAL */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;overflow-y:auto;padding:16px;align-items:flex-start;justify-content:center;}
+.modal-ov.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:680px;}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:2px;}
+.modal-close{background:transparent;border:1px solid var(--border);color:var(--gray);border-radius:4px;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.modal-close:hover{border-color:var(--red);color:var(--red);}
+.modal-body{padding:20px 22px;}
+
+/* FORM */
+.fr{margin-bottom:16px;}
+.flbl{font-family:'DM Mono',monospace;font-size:16px;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:6px;display:block;}
+.finp{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--white);font-family:'DM Mono',monospace;font-size:18px;padding:9px 12px;outline:none;transition:border-color .2s;}
+.finp:focus{border-color:var(--gold);}
+.fsel{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--white);font-family:'DM Mono',monospace;font-size:17px;padding:9px 12px;outline:none;cursor:pointer;-webkit-appearance:none;}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* TOGGLE GROUP — key fix: buttons handle their own onclick cleanly */
+.tg{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.tgb{flex:1;padding:11px 8px;background:var(--surface2);border:none;border-right:1px solid var(--border);color:var(--gray);font-family:'DM Mono',monospace;font-size:16px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;text-align:center;}
+.tgb:last-child{border-right:none;}
+.tgb.sel-gold{background:rgba(201,168,76,0.2);color:var(--gold);border-right:1px solid rgba(201,168,76,0.3);}
+.tgb.sel-green{background:rgba(61,190,122,0.15);color:var(--green);border-right:1px solid rgba(61,190,122,0.3);}
+.tgb.sel-red{background:rgba(224,62,62,0.15);color:var(--red);border-right:1px solid rgba(224,62,62,0.3);}
+.tgb.sel-gray{background:rgba(136,136,136,0.2);color:var(--white);border-right:1px solid rgba(136,136,136,0.3);}
+
+/* CHECKLIST */
+.cs{background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;}
+.cs-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);}
+.cs-title{font-family:'DM Mono',monospace;font-size:16px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);}
+.cs-score{font-family:'DM Mono',monospace;font-size:16px;padding:3px 9px;border-radius:10px;border:1px solid;}
+.cs-score.green{border-color:var(--green);color:var(--green);}
+.cs-score.yellow{border-color:var(--gold);color:var(--gold);}
+.cs-score.red{border-color:var(--red);color:var(--red);}
+.cs-items{padding:10px 14px;}
+.ci{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;cursor:pointer;user-select:none;}
+.ci:last-child{margin-bottom:0;}
+.ci-box{width:21px;height:21px;border-radius:5px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:1px;}
+.ci-box.on{background:var(--green);border-color:var(--green);}
+.ci-box.crit-off{border-color:var(--red);background:rgba(224,62,62,0.1);}
+.ci-box.warn-off{border-color:var(--orange);}
+.ci-text{font-family:'DM Sans',sans-serif;font-size:18px;color:var(--white);line-height:1.4;}
+.badge-crit{display:inline-block;font-family:'DM Mono',monospace;font-size:9px;color:var(--red);border:1px solid var(--red);border-radius:3px;padding:1px 4px;margin-left:5px;vertical-align:middle;}
+.badge-warn{display:inline-block;font-family:'DM Mono',monospace;font-size:9px;color:var(--orange);border:1px solid var(--orange);border-radius:3px;padding:1px 4px;margin-left:5px;vertical-align:middle;}
+
+/* COMMENT */
+.ftxa{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:18px;padding:10px 12px;outline:none;resize:vertical;min-height:72px;transition:border-color .2s;}
+.ftxa:focus{border-color:var(--gold);}
+
+/* BUTTONS */
+.btn-gold{padding:14px 30px;background:var(--gold);color:#000;border:none;border-radius:6px;font-family:'DM Mono',monospace;font-size:16px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:opacity .2s;}
+.btn-gold:hover{opacity:.85;}
+.btn-green{padding:14px 30px;background:var(--green);color:#000;border:none;border-radius:6px;font-family:'DM Mono',monospace;font-size:16px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:opacity .2s;}
+.btn-green:hover{opacity:.85;}
+.btn-ghost{padding:14px 22px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--gray);font-family:'DM Mono',monospace;font-size:16px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.btn-ghost:hover{border-color:var(--red);color:var(--red);}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;}
+.divider{height:1px;background:var(--border);margin:14px 0;}
+.approved-banner{background:rgba(61,190,122,0.1);border:1px solid rgba(61,190,122,0.3);border-radius:6px;padding:9px 12px;font-family:'DM Mono',monospace;font-size:16px;letter-spacing:2px;color:var(--green);margin-bottom:14px;}
+
+/* ANALYTICS */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:56px;line-height:1;}
+.stat-val.red{color:var(--red);}
+.stat-val.gold{color:var(--gold);}
+.stat-val.green{color:var(--green);}
+.stat-lbl{font-family:'DM Mono',monospace;font-size:16px;letter-spacing:1px;color:var(--gray);text-transform:uppercase;margin-top:3px;}
+
+/* SETTINGS */
+.set-section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:18px;}
+.set-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;margin-bottom:6px;}
+.set-sub{font-family:'DM Mono',monospace;font-size:15px;color:var(--gray);letter-spacing:1px;margin-bottom:14px;}
+.staff-list{display:flex;flex-direction:column;gap:7px;margin-bottom:12px;}
+.staff-row{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;}
+.staff-name{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;flex:1;}
+.staff-shop-tag{font-family:'DM Mono',monospace;font-size:15px;letter-spacing:1px;color:var(--gray);}
+.staff-role-tag{font-family:'DM Mono',monospace;font-size:15px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:10px;border:1px solid;}
+.staff-role-tag.barber{border-color:var(--gold);color:var(--gold);}
+.staff-role-tag.admin{border-color:var(--green);color:var(--green);}
+.staff-role-tag.cleaner{border-color:var(--gray);color:var(--gray);}
+.staff-del{background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--gray);cursor:pointer;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;flex-shrink:0;}
+.staff-del:hover{border-color:var(--red);color:var(--red);}
+.add-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+.si{background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--white);font-family:'DM Mono',monospace;font-size:18px;padding:8px 10px;outline:none;transition:border-color .2s;flex:1;min-width:100px;}
+.si:focus{border-color:var(--gold);}
+.si::placeholder{color:var(--gray);}
+.add-btn{padding:10px 18px;background:var(--gold);color:#000;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:16px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;white-space:nowrap;}
+
+/* QC USERS PIN */
+.qcu-row{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;margin-bottom:7px;}
+.qcu-name{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;flex:1;}
+.qcu-pin-tag{font-family:'DM Mono',monospace;font-size:18px;letter-spacing:3px;color:var(--gold);background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:4px;padding:4px 10px;}
+.qcu-edit-wrap{display:none;align-items:center;gap:6px;}
+.qcu-edit-inp{background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--white);font-family:'DM Mono',monospace;font-size:18px;padding:5px 9px;width:80px;outline:none;letter-spacing:3px;text-align:center;}
+.qcu-edit-inp:focus{border-color:var(--gold);}
+.qcu-save{background:var(--gold);border:none;border-radius:4px;color:#000;font-family:'DM Mono',monospace;font-size:16px;letter-spacing:1px;padding:6px 10px;cursor:pointer;}
+.qcu-toggle{background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--gray);font-family:'DM Mono',monospace;font-size:15px;letter-spacing:1px;padding:5px 10px;cursor:pointer;transition:all .2s;}
+.qcu-toggle:hover{border-color:var(--gold);color:var(--gold);}
+.pin-setup-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;}
+.pin-setup-lbl{font-family:'DM Sans',sans-serif;font-size:18px;color:var(--white);}
+.pin-inp{background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--white);font-family:'DM Mono',monospace;font-size:20px;padding:8px 12px;width:110px;outline:none;letter-spacing:4px;}
+.pin-inp:focus{border-color:var(--gold);}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 16px;}
+.empty-ico{font-size:40px;opacity:.3;margin-bottom:12px;}
+.btn-delete{padding:14px 16px;background:transparent;border:2px solid var(--red);border-radius:6px;color:var(--red);font-size:20px;cursor:pointer;transition:all .2s;line-height:1;}
+.btn-delete:hover{background:rgba(224,62,62,0.15);}
+.empty-txt{font-family:'DM Mono',monospace;font-size:18px;letter-spacing:2px;text-transform:uppercase;color:var(--gray);}
+
+@media(max-width:560px){
+  .fr2{grid-template-columns:1fr;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .modal-body{padding:14px 14px;}
+}
+</style>
+</head>
+<body>
+
+<!-- PIN SCREEN -->
+<div id="pinScreen">
+  <div class="pin-logo">EIGHTY<span>DAYS</span></div>
+  <div class="pin-sub">Quality Control</div>
+  <div class="pin-card">
+    <div class="pin-lbl">Введите PIN</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-grid">
+      <div class="pbn" onclick="PP('1')">1</div><div class="pbn" onclick="PP('2')">2</div><div class="pbn" onclick="PP('3')">3</div>
+      <div class="pbn" onclick="PP('4')">4</div><div class="pbn" onclick="PP('5')">5</div><div class="pbn" onclick="PP('6')">6</div>
+      <div class="pbn" onclick="PP('7')">7</div><div class="pbn" onclick="PP('8')">8</div><div class="pbn" onclick="PP('9')">9</div>
+      <div class="pbn" onclick="PP('C')" style="font-size:14px;letter-spacing:1px;">CLR</div>
+      <div class="pbn" onclick="PP('0')">0</div>
+      <div class="pbn" onclick="PP('B')" style="font-size:18px;">⌫</div>
+    </div>
+    <div class="pin-err" id="pinErr"></div>
+  </div>
+  <div class="pin-connecting" id="pinConnecting">Подключение...</div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" style="display:none;">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;">
+      <div class="logo-t">EIGHTY<span>DAYS</span></div>
+      <div class="logo-badge" id="topBadge">QC</div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" id="tabR" onclick="showPage('reports')">Отчёты</button>
+      <button class="tab" id="tabA" onclick="showPage('analytics')">Аналитика</button>
+      <button class="tab" id="tabS" onclick="showPage('settings')" style="display:none;">Настройки</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="role-badge" id="roleDisp">—</div>
+      <button class="logout-btn" onclick="doLogout()">Выйти</button>
+    </div>
+  </div>
+
+  <div class="shop-tabs-wrap">
+    <div class="shop-tabs">
+      <div class="shop-tab active" id="stBot" onclick="switchShop('bot')">Bot Avenue</div>
+      <div class="shop-tab" id="stChalong" onclick="switchShop('chalong')">Chalong</div>
+    </div>
+  </div>
+
+  <!-- REPORTS -->
+  <div class="page active" id="pageReports">
+    <div class="week-nav">
+      <button class="wnav-btn" onclick="shiftW(-1)">‹</button>
+      <div class="wnav-label" id="weekLbl">—</div>
+      <button class="wnav-btn" onclick="shiftW(1)">›</button>
+    </div>
+    <div class="sec-label" id="rCount">0 визитов</div>
+    <div class="reports-list" id="rList"></div>
+    <button class="add-report-btn" id="addRBtn" onclick="openNewReport()">+ Новый отчёт</button>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div class="page" id="pageAnalytics">
+    <div class="stat-grid" id="aStats"></div>
+    <div id="aGrid"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="pageSettings">
+    <!-- QC USERS -->
+    <div class="set-section">
+      <div class="set-title">Проверяющие (QC)</div>
+      <div class="set-sub">Каждый входит по своему PIN. Имя сохраняется в отчётах.</div>
+      <div id="qcUsersList"></div>
+      <div class="add-row">
+        <input class="si" id="qcNewName" placeholder="Имя проверяющего" style="flex:2;">
+        <input class="si" id="qcNewPin" placeholder="PIN" maxlength="4" inputmode="numeric" style="flex:1;min-width:80px;letter-spacing:3px;">
+        <button class="add-btn" onclick="addQCUser()">+ Добавить</button>
+      </div>
+    </div>
+
+    <!-- DANGER ZONE -->
+    <div class="set-section" style="border-color:rgba(224,62,62,0.3);">
+      <div class="set-title" style="color:var(--red);">Очистка данных</div>
+      <div class="set-sub">Удалить все отчёты по выбранной точке (необратимо)</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+        <button class="btn-ghost" style="border-color:var(--red);color:var(--red);" onclick="clearAllReports('bot')">Удалить все отчёты Bot Avenue</button>
+        <button class="btn-ghost" style="border-color:var(--red);color:var(--red);" onclick="clearAllReports('chalong')">Удалить все отчёты Chalong</button>
+      </div>
+    </div>
+
+    <!-- MANAGER PIN -->
+    <div class="set-section">
+      <div class="set-title">PIN Управляющего</div>
+      <div class="pin-setup-row">
+        <div class="pin-setup-lbl">Текущий PIN</div>
+        <input type="password" class="pin-inp" id="mgrPinInp" maxlength="4" inputmode="numeric" placeholder="••••">
+      </div>
+      <button class="btn-gold" onclick="saveMgrPin()" style="margin-top:10px;">Сохранить</button>
+    </div>
+
+    <!-- STAFF BOT AVENUE -->
+    <div class="set-section">
+      <div class="set-title">Bot Avenue — Сотрудники</div>
+      <div class="set-sub">Барберы, администраторы, уборщица привязанные к этой точке</div>
+      <div class="staff-list" id="staffListBot"></div>
+      <div class="add-row">
+        <input class="si" id="snBot" placeholder="Имя">
+        <div class="tg" style="flex-shrink:0;">
+          <button class="tgb sel-gold" id="rtBarberBot" onclick="setRT('bot','barber')">Барбер</button>
+          <button class="tgb" id="rtAdminBot" onclick="setRT('bot','admin')">Админ</button>
+          <button class="tgb" id="rtCleanerBot" onclick="setRT('bot','cleaner')">Уборщ.</button>
+        </div>
+        <button class="add-btn" onclick="addStaff('bot')">+ Добавить</button>
+      </div>
+    </div>
+
+    <!-- STAFF CHALONG -->
+    <div class="set-section">
+      <div class="set-title">Chalong — Сотрудники</div>
+      <div class="set-sub">Барберы, администраторы, уборщица привязанные к этой точке</div>
+      <div class="staff-list" id="staffListChalong"></div>
+      <div class="add-row">
+        <input class="si" id="snChalong" placeholder="Имя">
+        <div class="tg" style="flex-shrink:0;">
+          <button class="tgb sel-gold" id="rtBarberChalong" onclick="setRT('chalong','barber')">Барбер</button>
+          <button class="tgb" id="rtAdminChalong" onclick="setRT('chalong','admin')">Админ</button>
+          <button class="tgb" id="rtCleanerChalong" onclick="setRT('chalong','cleaner')">Уборщ.</button>
+        </div>
+        <button class="add-btn" onclick="addStaff('chalong')">+ Добавить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-ov" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modalTitle">Отчёт</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// ── FIREBASE ──────────────────────────────────────────────────
+firebase.initializeApp({
+  apiKey:"AIzaSyC4_yV93H6zSKJQerwowCSatiih-07-gfk",
+  authDomain:"eightydays-qc.firebaseapp.com",
+  projectId:"eightydays-qc",
+  storageBucket:"eightydays-qc.firebasestorage.app",
+  messagingSenderId:"866848747873",
+  appId:"1:866848747873:web:e2ad9dded42909e66cd520"
+});
+const db = firebase.firestore();
+
+// ── DEFAULT DATA ───────────────────────────────────────────────
+const DEF = {
+  pins:{mgr:'0000'},
+  qcUsers:[{id:'qc1',name:'Проверяющий',pin:'1234'}],
+  staff:{
+    bot:[
+      {id:'b1',name:'Alex',role:'barber'},
+      {id:'b2',name:'Mark',role:'barber'},
+      {id:'b3',name:'Nina',role:'admin'},
+      {id:'b4',name:'Joy',role:'cleaner'}
+    ],
+    chalong:[
+      {id:'c1',name:'Tony',role:'barber'},
+      {id:'c2',name:'Sam',role:'barber'},
+      {id:'c3',name:'Kate',role:'admin'},
+      {id:'c4',name:'Mei',role:'cleaner'}
+    ]
+  },
+  reports:[]
+};
+
+let D = JSON.parse(JSON.stringify(DEF));
+
+async function loadD(){
+  try{
+    const snap = await db.collection('app').doc('data').get();
+    if(snap.exists){
+      D = snap.data();
+      if(!D.reports) D.reports=[];   // guard: field may be deleted
+      if(!D.staff) D.staff={bot:[],chalong:[]};
+      if(!D.qcUsers) D.qcUsers=[];
+      if(!D.pins) D.pins={mgr:'0000'};
+    } else {
+      await db.collection('app').doc('data').set(DEF);
+      D = JSON.parse(JSON.stringify(DEF));
+    }
+  }catch(e){
+    console.error('Firebase load error:',e);
+    try{ const r=localStorage.getItem('ed_qc'); if(r){ D=JSON.parse(r); if(!D.reports)D.reports=[]; } }catch(_){}
+  }
+  return D;
+}
+async function saveD(d){
+  D=d;
+  // Always save to localStorage first (instant, never fails)
+  try{ localStorage.setItem('ed_qc',JSON.stringify(d)); }catch(_){}
+  // Then sync to Firebase
+  try{
+    await db.collection('app').doc('data').set(d);
+  }catch(e){
+    console.error('Firebase save error:',e);
+    // show brief warning but don't block UX
+    const w=document.createElement('div');
+    w.style.cssText='position:fixed;bottom:20px;right:20px;background:var(--orange);color:#000;font-family:DM Mono,monospace;font-size:13px;padding:10px 16px;border-radius:6px;z-index:9999;';
+    w.textContent='⚠ Нет связи с сервером. Данные сохранены локально.';
+    document.body.appendChild(w);
+    setTimeout(()=>w.remove(),4000);
+  }
+}
+
+// ── STATE ──────────────────────────────────────────────────────
+let role=null, qcUser=null, shop='bot', weekOff=0, pinBuf='';
+let rtSel={bot:'barber',chalong:'barber'};
+// form state stored as plain object — no closures needed
+let FS={};
+
+// ── BOOT ──────────────────────────────────────────────────────
+loadD().then(()=>{
+  document.getElementById('pinConnecting').style.display='none';
+}).catch(()=>{
+  document.getElementById('pinConnecting').textContent='Офлайн режим';
+});
+
+// ── PIN ───────────────────────────────────────────────────────
+function PP(v){
+  if(v==='C'){pinBuf='';updDots();document.getElementById('pinErr').textContent='';return;}
+  if(v==='B'){pinBuf=pinBuf.slice(0,-1);updDots();return;}
+  if(pinBuf.length>=4)return;
+  pinBuf+=v; updDots();
+  if(pinBuf.length===4) setTimeout(checkPin,120);
+}
+function updDots(){
+  for(let i=0;i<4;i++) document.getElementById('pd'+i).classList.toggle('filled',i<pinBuf.length);
+}
+async function checkPin(){
+  await loadD();
+  if(pinBuf===D.pins.mgr){enterApp('mgr',null);return;}
+  const u=(D.qcUsers||[]).find(u=>u.pin===pinBuf);
+  if(u){enterApp('qc',u);return;}
+  document.getElementById('pinErr').textContent='Неверный PIN';
+  pinBuf='';updDots();
+  setTimeout(()=>document.getElementById('pinErr').textContent='',2000);
+}
+function enterApp(r,u){
+  role=r;qcUser=u;
+  document.getElementById('pinScreen').style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  document.getElementById('roleDisp').textContent=r==='mgr'?'Управляющий':(u?u.name:'QC');
+  document.getElementById('topBadge').textContent=r==='mgr'?'Manager':'QC';
+  document.getElementById('tabS').style.display=r==='mgr'?'':'none';
+  document.getElementById('addRBtn').style.display=r==='qc'?'':'none';
+  updWeekLbl();renderReports();renderAnalytics();
+  if(r==='mgr') renderSettings();
+}
+function doLogout(){
+  role=null;qcUser=null;pinBuf='';updDots();
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('pinScreen').style.display='flex';
+  showPage('reports');
+}
+
+// ── NAV ───────────────────────────────────────────────────────
+function showPage(p){
+  ['reports','analytics','settings'].forEach(x=>{
+    document.getElementById('page'+x.charAt(0).toUpperCase()+x.slice(1)).classList.remove('active');
+  });
+  document.getElementById('page'+p.charAt(0).toUpperCase()+p.slice(1)).classList.add('active');
+  ['R','A','S'].forEach((l,i)=>{
+    const id='tab'+l;
+    const el=document.getElementById(id);
+    if(el) el.classList.remove('active');
+  });
+  const map={reports:'tabR',analytics:'tabA',settings:'tabS'};
+  const t=document.getElementById(map[p]);
+  if(t) t.classList.add('active');
+  if(p==='analytics') renderAnalytics();
+  if(p==='settings') renderSettings();
+}
+function switchShop(s){
+  shop=s;
+  document.getElementById('stBot').classList.toggle('active',s==='bot');
+  document.getElementById('stChalong').classList.toggle('active',s==='chalong');
+  renderReports();renderAnalytics();
+}
+
+// ── WEEK ──────────────────────────────────────────────────────
+function getWeek(off){
+  const n=new Date(),day=n.getDay()||7;
+  const mon=new Date(n);mon.setDate(n.getDate()-day+1+off*7);
+  const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+  return{s:mon,e:sun};
+}
+function fd(d){return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});}
+function shiftW(d){weekOff+=d;updWeekLbl();renderReports();}
+function updWeekLbl(){
+  const{s,e}=getWeek(weekOff);
+  const lbl=weekOff===0?`Эта неделя: ${fd(s)}–${fd(e)}`:weekOff===-1?`Прошлая: ${fd(s)}–${fd(e)}`:`${fd(s)}–${fd(e)}`;
+  document.getElementById('weekLbl').textContent=lbl;
+}
+function inWeek(dateStr,off){
+  const{s,e}=getWeek(off);
+  // normalize: take only date part before any T or space
+  const clean=(dateStr||'').split(/T| /)[0];
+  const d=new Date(clean+'T12:00:00');
+  const eEnd=new Date(e.getFullYear(),e.getMonth(),e.getDate(),23,59,59);
+  return d>=s&&d<=eEnd;
+}
+
+// ── REPORTS LIST ──────────────────────────────────────────────
+function renderReports(){
+  const reps=(D.reports||[]).filter(r=>r.shop===shop&&inWeek(r.date,weekOff));
+  reps.sort((a,b)=>a.date>b.date?1:-1);
+  document.getElementById('rCount').textContent=reps.length+' визит'+(reps.length===1?'':reps.length<5?'а':'ов');
+  const el=document.getElementById('rList');
+  if(!reps.length){el.innerHTML='<div class="empty"><div class="empty-ico">📋</div><div class="empty-txt">Нет отчётов за эту неделю</div></div>';return;}
+  el.innerHTML=reps.map(r=>{
+    const sc=calcScore(r),st=calcStatus(r);
+    const pct=sc.t>0?Math.round(sc.ok/sc.t*100):100;
+    const delBtn=`<button class="rc-del-btn" onclick="event.stopPropagation();deleteReportById('${r.id}')" title="Удалить">🗑</button>`;
+    return`<div class="rc s-${st}" onclick="openReport('${r.id}')">
+      <div class="rc-head">
+        <div class="rc-dot ${st}"></div>
+        <div class="rc-time">${(r.date||'').split(/T| /)[0]} ${r.tf||''}–${r.tt||''}</div>
+        <div style="flex:1;">
+          <div class="rc-barber">${r.barberName||'—'}</div>
+          <div class="rc-svc">${svcLabel(r)}</div>
+        </div>
+        <div class="rc-score ${st}">${sc.ok}/${sc.t}</div>
+        <div class="rc-appr ${r.approved?'yes':''}">${r.approved?'✓ Апрув':role==='mgr'?'Апрув':'—'}</div>
+        <div class="rc-qcname">${r.qcName||''}</div>
+        ${delBtn}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function svcLabel(r){
+  const p=[];
+  if(r.haircut==='premium') p.push('Премиум');
+  if(r.haircut==='royal') p.push('Королевская');
+  if(r.beard==='premium') p.push('Борода Премиум');
+  if(r.beard==='royal') p.push('Бритьё Королевское');
+  return p.join(' + ')||'Услуги не указаны';
+}
+function calcScore(r){
+  let ok=0,t=0;
+  Object.values(r.checks||{}).forEach(v=>{if(typeof v==='boolean'){t++;if(v)ok++;}});
+  return{ok,t};
+}
+function calcStatus(r){
+  const sc=calcScore(r);
+  if(!sc.t) return'yellow';
+  const p=sc.ok/sc.t;
+  if(p>=1.0) return'green';
+  if(p>=0.6) return'yellow';
+  return'red';
+}
+
+// ── OPEN / NEW REPORT ─────────────────────────────────────────
+function openNewReport(){
+  FS={id:null,shop,date:new Date().toISOString().split('T')[0],tf:'10:00',tt:'11:00',
+      barberId:'',barberName:'',isNew:false,clientType:'unknown',
+      haircut:'none',beard:'none',checks:{},commentQC:'',commentMgr:'',approved:false,qcName:qcUser?qcUser.name:'QC'};
+  document.getElementById('modalTitle').textContent='Новый отчёт';
+  buildForm();
+  document.getElementById('modal').classList.add('open');
+}
+function openReport(id){
+  const r=(D.reports||[]).find(x=>x.id===id);
+  if(!r) return;
+  FS=JSON.parse(JSON.stringify(r));
+  document.getElementById('modalTitle').textContent='Отчёт визита';
+  buildForm();
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+// ── FORM BUILD ────────────────────────────────────────────────
+function buildForm(){
+  const ro=role==='mgr';
+  const staff=(D.staff||{})[shop]||[];
+  const barbers=staff.filter(s=>s.role==='barber');
+  const admins=staff.filter(s=>s.role==='admin');
+  const adminName=admins.length?admins[0].name:'Не назначен';
+
+  let html='';
+  if(FS.approved) html+=`<div class="approved-banner">✓ Апрувнуто управляющим</div>`;
+
+  // DATE / TIME
+  html+=`<div class="fr2">
+    <div class="fr"><label class="flbl">Дата</label>
+      <input class="finp" type="date" id="fDate" value="${(FS.date||''). split(/T| /)[0]}" ${ro?'readonly':''} onchange="FS.date=this.value">
+    </div>
+    <div class="fr"><label class="flbl">Время (от – до)</label>
+      <div style="display:flex;gap:6px;">
+        <input class="finp" type="time" id="fTf" value="${FS.tf||''}" style="flex:1;" ${ro?'readonly':''} onchange="FS.tf=this.value">
+        <input class="finp" type="time" id="fTt" value="${FS.tt||''}" style="flex:1;" ${ro?'readonly':''} onchange="FS.tt=this.value">
+      </div>
+    </div>
+  </div>`;
+
+  // BARBER / ADMIN
+  html+=`<div class="fr2">
+    <div class="fr"><label class="flbl">Барбер</label>`;
+  if(ro){
+    html+=`<div class="finp" style="cursor:default;">${FS.barberName||'—'}</div>`;
+  } else {
+    html+=`<select class="fsel" id="fBarber" onchange="FS.barberId=this.value;FS.barberName=this.options[this.selectedIndex].text">
+      <option value="">— выбрать —</option>
+      ${barbers.map(b=>`<option value="${b.id}" ${FS.barberId===b.id?'selected':''}>${b.name}</option>`).join('')}
+    </select>`;
+  }
+  html+=`</div>
+    <div class="fr"><label class="flbl">Администратор</label>
+      <div class="finp" style="cursor:default;color:var(--gray);">${adminName}</div>
+    </div>
+  </div>`;
+
+  // CLIENT TYPE
+  html+=`<div class="fr"><label class="flbl">Тип клиента</label>
+    <div class="tg">
+      <button class="tgb ${FS.clientType==='unknown'?'sel-red':''}" id="ct_unknown" onclick="setCT('unknown')">Неизв.</button>
+      <button class="tgb ${FS.clientType==='local'?'sel-gold':''}" id="ct_local" onclick="setCT('local')">Local</button>
+      <button class="tgb ${FS.clientType==='winter'?'sel-gold':''}" id="ct_winter" onclick="setCT('winter')">Winter</button>
+      <button class="tgb ${FS.clientType==='travel'?'sel-gray':''}" id="ct_travel" onclick="setCT('travel')">Travel</button>
+    </div>
+  </div>`;
+
+  // NEW CLIENT
+  html+=`<div class="fr"><label class="flbl">Новый клиент?</label>
+    <div class="tg">
+      <button class="tgb ${FS.isNew?'sel-gold':''}" id="in_yes" onclick="setIN(true)">Новый</button>
+      <button class="tgb ${!FS.isNew?'sel-gray':''}" id="in_no" onclick="setIN(false)">Постоянный</button>
+    </div>
+  </div>`;
+
+  // SERVICES
+  html+=`<div class="fr2">
+    <div class="fr"><label class="flbl">Стрижка</label>
+      <div class="tg">
+        <button class="tgb ${FS.haircut==='none'?'sel-gray':''}" id="hc_none" onclick="setHC('none')">Нет</button>
+        <button class="tgb ${FS.haircut==='premium'?'sel-gold':''}" id="hc_premium" onclick="setHC('premium')">Премиум</button>
+        <button class="tgb ${FS.haircut==='royal'?'sel-gold':''}" id="hc_royal" onclick="setHC('royal')">Королевская</button>
+      </div>
+    </div>
+    <div class="fr"><label class="flbl">Борода</label>
+      <div class="tg">
+        <button class="tgb ${FS.beard==='none'?'sel-gray':''}" id="bd_none" onclick="setBD('none')">Нет</button>
+        <button class="tgb ${FS.beard==='premium'?'sel-gold':''}" id="bd_premium" onclick="setBD('premium')">Премиум</button>
+        <button class="tgb ${FS.beard==='royal'?'sel-gold':''}" id="bd_royal" onclick="setBD('royal')">Королевское</button>
+      </div>
+    </div>
+  </div>`;
+
+  html+=`<div class="divider"></div>`;
+  html+=`<div id="checkArea"></div>`;
+  html+=`<div class="divider"></div>`;
+
+  // COMMENTS
+  html+=`<div class="fr"><label class="flbl">Комментарий QC</label>
+    <textarea class="ftxa" id="fCQC" onchange="FS.commentQC=this.value">${FS.commentQC||''}</textarea>
+  </div>`;
+  if(role==='mgr'){
+    html+=`<div class="fr"><label class="flbl">Комментарий управляющего</label>
+      <textarea class="ftxa" id="fCMgr" onchange="FS.commentMgr=this.value">${FS.commentMgr||''}</textarea>
+    </div>`;
+  }
+
+  // BUTTONS
+  html+=`<div class="btn-row">`;
+  if(!ro) html+=`<button class="btn-gold" onclick="saveReport()">Сохранить</button>`;
+  if(FS.id) html+=`<button class="btn-delete" onclick="deleteReport('${FS.id}')" title="Удалить отчёт">🗑</button>`;
+  if(ro&&!FS.approved) html+=`<button class="btn-green" onclick="approveReport()">✓ Апрувнуть</button>`;
+  if(ro&&!FS.approved) html+=`<button class="btn-gold" onclick="saveMgrComment()">Сохранить комментарий</button>`;
+  if(ro&&FS.approved) html+=`<button class="btn-green" style="opacity:.5;cursor:default;" disabled>✓ Апрувнуто</button>`;
+  html+=`<button class="btn-ghost" onclick="closeModal()">Закрыть</button></div>`;
+
+  document.getElementById('modalBody').innerHTML=html;
+  buildChecklist();
+}
+
+// ── TOGGLE HANDLERS ───────────────────────────────────────────
+function setCT(v){
+  FS.clientType=v;
+  ['unknown','local','winter','travel'].forEach(x=>{
+    const b=document.getElementById('ct_'+x);
+    if(!b)return;
+    b.className='tgb';
+    if(x===v) b.classList.add(v==='unknown'?'sel-red':v==='travel'?'sel-gray':'sel-gold');
+  });
+  buildChecklist();
+}
+function setIN(v){
+  FS.isNew=v;
+  const y=document.getElementById('in_yes'),n=document.getElementById('in_no');
+  if(y){y.className='tgb';if(v)y.classList.add('sel-gold');}
+  if(n){n.className='tgb';if(!v)n.classList.add('sel-gray');}
+  buildChecklist();
+}
+function setHC(v){
+  FS.haircut=v;
+  ['none','premium','royal'].forEach(x=>{
+    const b=document.getElementById('hc_'+x);
+    if(!b)return;
+    b.className='tgb';
+    if(x===v) b.classList.add(v==='none'?'sel-gray':'sel-gold');
+  });
+  buildChecklist();
+}
+function setBD(v){
+  FS.beard=v;
+  ['none','premium','royal'].forEach(x=>{
+    const b=document.getElementById('bd_'+x);
+    if(!b)return;
+    b.className='tgb';
+    if(x===v) b.classList.add(v==='none'?'sel-gray':'sel-gold');
+  });
+  buildChecklist();
+}
+function toggleCK(key){
+  if(role==='mgr') return;
+  FS.checks[key]=!FS.checks[key];
+  buildChecklist();
+}
+
+// ── CHECKLIST BUILD ───────────────────────────────────────────
+function buildChecklist(){
+  const area=document.getElementById('checkArea');
+  if(!area) return;
+  const ct=FS.clientType,isNew=FS.isNew,hc=FS.haircut,bd=FS.beard;
+  const ck=FS.checks||{};
+
+  let sections=[];
+
+  // ─ ADMIN CRM ─
+  const crmItems=[];
+  crmItems.push({k:'crmCategory',lbl:'Категория клиента отмечена (Local/Winter/Travel)',crit:ct==='unknown'});
+  if(ct!=='travel'){
+    crmItems.push({k:'crmName',lbl:'Имя клиента'});
+  }
+  if(ct==='local'||ct==='winter'){
+    crmItems.push({k:'crmPhone',lbl:'Телефон клиента'});
+    crmItems.push({k:'crmPhoto',lbl:'Фото клиента'});
+    crmItems.push({k:'crmHair360',lbl:'Стрижка 360° (фото результата)'});
+    crmItems.push({k:'crmCoffee',lbl:'Предпочтение по кофе отмечено',crit:false});
+  }
+  sections.push({title:'CRM — Altegio',items:crmItems});
+
+  // ─ ADMIN CAMERA ─
+  const camItems=[];
+  if(isNew) camItems.push({k:'adminTricho',lbl:'Предложил трихоскоп (новый клиент)'});
+  camItems.push({k:'adminDuration',lbl:'Сообщил длительность и стоимость'});
+  camItems.push({k:'adminUpsell',lbl:'Предложил апсейл'});
+  camItems.push({k:'adminCoffee',lbl:'Предложил кофе / чай'});
+  camItems.push({k:'adminPayment',lbl:'Встал и рассчитал клиента'});
+  camItems.push({k:'adminCosmetics',lbl:'Предложил косметику'});
+  camItems.push({k:'adminNextBook',lbl:'Предложил запись на следующий раз'});
+  camItems.push({k:'adminSamples',lbl:'Предложил пробники (при отказе от косметики)'});
+  sections.push({title:'Камера — Администратор',items:camItems});
+
+  // ─ BARBER ─
+  if(hc!=='none'){
+    sections.push({title:'Барбер — Гигиена',items:[
+      {k:'barberGloves',lbl:'Чёрные перчатки надеты'},
+      {k:'barberMask',lbl:'Маска надета'},
+    ]});
+    const proc=[];
+    if(hc==='premium'){
+      // ПРЕМИАЛЬНАЯ СТРИЖКА — 8 пунктов
+      proc.push({k:'hairWash1',lbl:'1-я мойка головы'});
+      proc.push({k:'barberShampooDemo',lbl:'Демонстрация шампуня на 1-й мойке'});
+      if(isNew) proc.push({k:'barberDiscussion',lbl:'Обсуждение стрижки + референсы'});
+      proc.push({k:'cleanerFloor',lbl:'Уборщица подмела вокруг кресла'});
+      proc.push({k:'hairWash2',lbl:'2-я мойка головы'});
+      proc.push({k:'barberStyleDemo',lbl:'Демонстрация укладочного средства'});
+      proc.push({k:'barberAfterShave',lbl:'Автошейв после стрижки'});
+      proc.push({k:'barberToolClean',lbl:'Инструменты в барбицид / санитайзер'});
+      proc.push({k:'cleanerWash',lbl:'Уборщица дезинфицировала мойку'});
+    } else if(hc==='royal'){
+      // КОРОЛЕВСКАЯ СТРИЖКА — 15 пунктов
+      proc.push({k:'royalTricho',lbl:'Трихоскоп — показал состояние волос (до мойки)'});
+      proc.push({k:'hairWash1',lbl:'1-я мойка головы'});
+      proc.push({k:'barberShampooDemo',lbl:'Демонстрация шампуня на 1-й мойке'});
+      proc.push({k:'royalScrub',lbl:'Скраб для головы (1-я мойка)'});
+      proc.push({k:'royalMassager',lbl:'Массажёры для головы (1 мин)'});
+      if(isNew) proc.push({k:'barberDiscussion',lbl:'Обсуждение стрижки + референсы'});
+      proc.push({k:'cleanerFloor',lbl:'Уборщица подмела вокруг кресла'});
+      proc.push({k:'hairWash2',lbl:'2-я мойка головы'});
+      proc.push({k:'barberShampooDemo2',lbl:'Демонстрация шампуня на 2-й мойке'});
+      proc.push({k:'royalShampoo2',lbl:'Шампунь от выпадения волос (2-я мойка)'});
+      proc.push({k:'royalMassager2',lbl:'Массажёры на 2-й мойке'});
+      proc.push({k:'royalTonic',lbl:'Тоник от выпадения + вибромассажёр'});
+      proc.push({k:'barberStyleDemo',lbl:'Демонстрация укладочного средства'});
+      proc.push({k:'barberAfterShave',lbl:'Автошейв после стрижки'});
+      proc.push({k:'barberToolClean',lbl:'Инструменты в барбицид / санитайзер'});
+      proc.push({k:'cleanerWash',lbl:'Уборщица дезинфицировала мойку'});
+    }
+    if(proc.length) sections.push({title:`Барбер — ${hc==='royal'?'Королевская стрижка':'Премиальная стрижка'}`,items:proc});
+  }
+
+  // ─ BEARD ─
+  if(bd!=='none'){
+    const bi=[];
+    if(bd==='premium'){
+      // ПРЕМИУМ БРИТЬЁ — 9 пунктов
+      bi.push({k:'beardWash',lbl:'Мытьё бороды шампунем (Luxina Beard)'});
+      bi.push({k:'beardLavender',lbl:'Масло лаванды на горячее полотенце'});
+      bi.push({k:'beardHotTowel',lbl:'Горячее полотенце (2 мин)'});
+      bi.push({k:'beardSpongies',lbl:'Спонжики на глаза'});
+      bi.push({k:'beardPreshave',lbl:'Ментоловый прешейв'});
+      bi.push({k:'beardMenthol',lbl:'Масло ментола на холодное полотенце'});
+      bi.push({k:'beardColdTowel',lbl:'Холодное полотенце (2 мин)'});
+      bi.push({k:'beardAfter',lbl:'Афтершейв нанесён'});
+      bi.push({k:'beardBalm',lbl:'Бальзам для бороды'});
+    } else if(bd==='royal'){
+      // КОРОЛЕВСКОЕ БРИТЬЁ — 14 пунктов
+      bi.push({k:'beardWash',lbl:'Мытьё бороды шампунем (Luxina Beard)'});
+      bi.push({k:'beardLavender',lbl:'Масло лаванды на горячее полотенце'});
+      bi.push({k:'beardHotTowel',lbl:'Горячее полотенце (2 мин)'});
+      bi.push({k:'royalVibro1',lbl:'Вибромассажёры (горячий этап)'});
+      bi.push({k:'beardSpongies',lbl:'Спонжики на глаза'});
+      bi.push({k:'beardPreshave',lbl:'Ментоловый прешейв'});
+      bi.push({k:'royalPatches',lbl:'Патчи под глаза'});
+      bi.push({k:'beardMenthol',lbl:'Масло ментола на холодное полотенце'});
+      bi.push({k:'beardColdTowel',lbl:'Холодное полотенце (2 мин)'});
+      bi.push({k:'royalVibro2',lbl:'Вибромассажёры (холодный этап)'});
+      bi.push({k:'detoxNeroli',lbl:'Детокс масло Neroli'});
+      bi.push({k:'detoxAmber',lbl:'Шампунь Amber (пена)'});
+      bi.push({k:'detoxLilly',lbl:'Крем-бальзам Lilly'});
+      bi.push({k:'beardAfter',lbl:'Афтершейв нанесён'});
+    }
+    if(bi.length) sections.push({title:`Борода — ${bd==='royal'?'Королевское бритьё':'Премиум моделирование'}`,items:bi});
+  }
+
+  if(hc==='none'&&bd==='none'){
+    area.innerHTML='<div class="empty"><div class="empty-txt">Выберите услуги выше для отображения чеклиста</div></div>';
+    return;
+  }
+
+  area.innerHTML=sections.map(s=>{
+    const done=s.items.filter(i=>ck[i.k]===true).length;
+    const tot=s.items.length;
+    const pct=tot>0?done/tot:0;
+    const sc=pct>=1.0?'green':pct>=0.6?'yellow':'red';
+    return`<div class="cs">
+      <div class="cs-head">
+        <div class="cs-title">${s.title}</div>
+        <div class="cs-score ${sc}">${done}/${tot}</div>
+      </div>
+      <div class="cs-items">
+        ${s.items.map(i=>{
+          const on=ck[i.k]===true;
+          const off=ck[i.k]===false;
+          const boxCls=on?'on':i.crit&&off?'crit-off':i.warn&&off?'warn-off':'';
+          return`<div class="ci" onclick="toggleCK('${i.k}')">
+            <div class="ci-box ${boxCls}">${on?'<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}</div>
+            <div class="ci-text">${i.lbl}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── SAVE / APPROVE ────────────────────────────────────────────
+async function saveReport(){
+  if(!FS.barberId){alert('Выберите барбера');return;}
+  const r={
+    id:FS.id||'r'+Date.now(),shop,
+    date:(FS.date||'').split(/T| /)[0],tf:FS.tf,tt:FS.tt,
+    barberId:FS.barberId,barberName:FS.barberName,
+    qcName:FS.qcName||'QC',
+    isNew:FS.isNew,clientType:FS.clientType,
+    haircut:FS.haircut,beard:FS.beard,
+    checks:Object.assign({},FS.checks),
+    commentQC:document.getElementById('fCQC')?.value||FS.commentQC||'',
+    commentMgr:FS.commentMgr||'',approved:false
+  };
+  // Don't reload from Firebase — work with current D in memory
+  if(!D.reports) D.reports=[];
+  const idx=D.reports.findIndex(x=>x.id===r.id);
+  if(idx>=0) D.reports[idx]=r; else D.reports.push(r);
+  await saveD(D);
+  closeModal();renderReports();
+}
+async function approveReport(){
+  if(!D.reports) D.reports=[];
+  const r=D.reports.find(x=>x.id===FS.id);
+  if(!r)return;
+  r.approved=true;
+  r.commentMgr=document.getElementById('fCMgr')?.value||FS.commentMgr||'';
+  await saveD(D);closeModal();renderReports();
+}
+async function deleteReport(id){
+  if(!confirm('Вы точно хотите удалить этот отчёт? Это действие нельзя отменить.')) return;
+  D.reports=(D.reports||[]).filter(r=>r.id!==id);
+  await saveD(D);
+  closeModal();
+  renderReports();
+}
+
+async function deleteReportById(id){
+  if(!confirm('Вы точно хотите удалить этот отчёт? Это действие нельзя отменить.')) return;
+  D.reports=(D.reports||[]).filter(r=>r.id!==id);
+  await saveD(D);
+  renderReports();
+  renderAnalytics();
+}
+
+async function saveMgrComment(){
+  if(!D.reports) D.reports=[];
+  const r=D.reports.find(x=>x.id===FS.id);
+  if(!r)return;
+  r.commentMgr=document.getElementById('fCMgr')?.value||'';
+  await saveD(D);closeModal();renderReports();
+}
+
+// ── ANALYTICS ─────────────────────────────────────────────────
+function renderAnalytics(){
+  const reps=(D.reports||[]).filter(r=>r.shop===shop);
+  const total=reps.length,appr=reps.filter(r=>r.approved).length;
+  const crit=reps.filter(r=>calcStatus(r)==='red').length;
+  const clean=reps.filter(r=>calcStatus(r)==='green').length;
+  document.getElementById('aStats').innerHTML=`
+    <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-lbl">Всего</div></div>
+    <div class="stat-card"><div class="stat-val green">${clean}</div><div class="stat-lbl">Без нарушений</div></div>
+    <div class="stat-card"><div class="stat-val red">${crit}</div><div class="stat-lbl">Критические</div></div>
+    <div class="stat-card"><div class="stat-val gold">${appr}</div><div class="stat-lbl">Апрувнуто</div></div>`;
+  const barbers=(D.staff||{})[shop]||[];
+  const blist=barbers.filter(b=>b.role==='barber');
+  if(!blist.length){document.getElementById('aGrid').innerHTML='';return;}
+  document.getElementById('aGrid').innerHTML=blist.map(b=>{
+    const br=reps.filter(r=>r.barberId===b.id);
+    if(!br.length) return'';
+    const tot=br.reduce((a,r)=>{const s=calcScore(r);return a+s.t;},0);
+    const ok=br.reduce((a,r)=>{const s=calcScore(r);return a+s.ok;},0);
+    const fp=tot>0?Math.round((tot-ok)/tot*100):0;
+    return`<div class="set-section" style="margin-bottom:12px;">
+      <div class="set-title" style="font-size:18px;">${b.name}</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+        <div style="flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${fp}%;background:var(--red);border-radius:4px;"></div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">${fp}% ошибок / ${br.length} проверок</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────
+async function clearAllReports(sh){
+  if(!confirm(`Удалить ВСЕ отчёты ${sh==='bot'?'Bot Avenue':'Chalong'}? Это действие нельзя отменить.`)) return;
+  D.reports=(D.reports||[]).filter(r=>r.shop!==sh);
+  await saveD(D);
+  renderReports();
+  renderAnalytics();
+  alert('Отчёты удалены.');
+}
+
+function renderSettings(){
+  document.getElementById('mgrPinInp').value=D.pins?.mgr||'';
+  renderQCList();
+  renderStaffList('bot');
+  renderStaffList('chalong');
+}
+
+function renderQCList(){
+  const users=D.qcUsers||[];
+  document.getElementById('qcUsersList').innerHTML=users.map(u=>`
+    <div class="qcu-row" id="qcrow_${u.id}">
+      <div class="qcu-name">${u.name}</div>
+      <div class="staff-role-tag barber" style="font-size:9px;">QC</div>
+      <div class="qcu-pin-tag" id="qctag_${u.id}">••••</div>
+      <button class="qcu-toggle" id="qcbtn_${u.id}" onclick="toggleQCEdit('${u.id}')">Сменить PIN</button>
+      <div class="qcu-edit-wrap" id="qcedit_${u.id}">
+        <input class="qcu-edit-inp" id="qcinp_${u.id}" maxlength="4" inputmode="numeric" placeholder="0000">
+        <button class="qcu-save" onclick="saveQCPin('${u.id}')">OK</button>
+      </div>
+      <button class="staff-del" onclick="delQCUser('${u.id}')">✕</button>
+    </div>`).join('')||'<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--gray);padding:8px 0;">Нет проверяющих</div>';
+}
+
+function toggleQCEdit(id){
+  const edit=document.getElementById('qcedit_'+id);
+  const btn=document.getElementById('qcbtn_'+id);
+  const tag=document.getElementById('qctag_'+id);
+  const open=edit.style.display==='flex';
+  if(open){edit.style.display='none';btn.textContent='Сменить PIN';tag.style.display='';}
+  else{edit.style.display='flex';btn.textContent='Отмена';tag.style.display='none';document.getElementById('qcinp_'+id).focus();}
+}
+async function saveQCPin(id){
+  const inp=document.getElementById('qcinp_'+id);
+  const pin=inp.value.trim();
+  if(!/^\d{4}$/.test(pin)){inp.style.borderColor='var(--red)';setTimeout(()=>inp.style.borderColor='',1500);return;}
+  await loadD();
+  const dup=(D.qcUsers||[]).find(u=>u.pin===pin&&u.id!==id);
+  if(dup){alert('PIN занят: '+dup.name);return;}
+  if(pin===D.pins?.mgr){alert('PIN занят управляющим');return;}
+  const u=(D.qcUsers||[]).find(u=>u.id===id);
+  if(u) u.pin=pin;
+  await saveD(D);renderQCList();
+}
+async function addQCUser(){
+  const name=document.getElementById('qcNewName').value.trim();
+  const pin=document.getElementById('qcNewPin').value.trim();
+  if(!name){document.getElementById('qcNewName').style.borderColor='var(--red)';setTimeout(()=>document.getElementById('qcNewName').style.borderColor='',1500);return;}
+  if(!/^\d{4}$/.test(pin)){document.getElementById('qcNewPin').style.borderColor='var(--red)';setTimeout(()=>document.getElementById('qcNewPin').style.borderColor='',1500);return;}
+  await loadD();
+  if(!D.qcUsers) D.qcUsers=[];
+  const dup=D.qcUsers.find(u=>u.pin===pin);
+  if(dup){alert('PIN занят: '+dup.name);return;}
+  if(pin===D.pins?.mgr){alert('PIN занят управляющим');return;}
+  D.qcUsers.push({id:'qc'+Date.now(),name,pin});
+  await saveD(D);
+  document.getElementById('qcNewName').value='';document.getElementById('qcNewPin').value='';
+  renderQCList();
+}
+async function delQCUser(id){
+  await loadD();D.qcUsers=(D.qcUsers||[]).filter(u=>u.id!==id);await saveD(D);renderQCList();
+}
+async function saveMgrPin(){
+  const pin=document.getElementById('mgrPinInp').value.trim();
+  if(!/^\d{4}$/.test(pin)){alert('PIN — 4 цифры');return;}
+  await loadD();
+  const dup=(D.qcUsers||[]).find(u=>u.pin===pin);
+  if(dup){alert('PIN занят проверяющим: '+dup.name);return;}
+  D.pins.mgr=pin;await saveD(D);
+  const btn=document.querySelector('[onclick="saveMgrPin()"]');
+  const orig=btn.textContent;btn.textContent='✓ Сохранено';btn.style.background='var(--green)';
+  setTimeout(()=>{btn.textContent=orig;btn.style.background='';},2000);
+}
+
+function renderStaffList(shop){
+  const cap=shop.charAt(0).toUpperCase()+shop.slice(1);
+  const staff=(D.staff||{})[shop]||[];
+  document.getElementById('staffList'+cap).innerHTML=staff.map(s=>`
+    <div class="staff-row">
+      <div class="staff-name">${s.name}</div>
+      <div class="staff-shop-tag">${shop==='bot'?'Bot Ave':'Chalong'}</div>
+      <div class="staff-role-tag ${s.role}">${s.role==='barber'?'Барбер':s.role==='admin'?'Администратор':'Уборщица'}</div>
+      <button class="staff-del" onclick="delStaff('${shop}','${s.id}')">✕</button>
+    </div>`).join('')||'<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--gray);padding:6px 0;">Нет сотрудников</div>';
+}
+
+function setRT(shop,role){
+  rtSel[shop]=role;
+  const cap=shop.charAt(0).toUpperCase()+shop.slice(1);
+  ['Barber','Admin','Cleaner'].forEach(r=>{
+    const b=document.getElementById('rt'+r+cap);
+    if(!b)return;
+    b.className='tgb';
+    if(r.toLowerCase()===role) b.classList.add('sel-gold');
+  });
+}
+async function addStaff(shop){
+  const cap=shop.charAt(0).toUpperCase()+shop.slice(1);
+  const name=document.getElementById('sn'+cap).value.trim();
+  if(!name)return;
+  await loadD();
+  if(!D.staff) D.staff={};
+  if(!D.staff[shop]) D.staff[shop]=[];
+  D.staff[shop].push({id:'s'+Date.now(),name,role:rtSel[shop]});
+  await saveD(D);
+  document.getElementById('sn'+cap).value='';
+  renderStaffList(shop);
+}
+async function delStaff(shop,id){
+  await loadD();
+  D.staff[shop]=(D.staff[shop]||[]).filter(s=>s.id!==id);
+  await saveD(D);renderStaffList(shop);
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+updWeekLbl();
+</script>
+</body>
+</html>
