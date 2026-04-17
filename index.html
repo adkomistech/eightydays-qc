@@ -762,8 +762,12 @@ function buildChecklist(){
   }
   if(ct==='local'||ct==='winter'){
     crmItems.push({k:'crmPhone',lbl:'Телефон клиента'});
+  }
+  if(ct==='local'||ct==='winter'||ct==='unknown'){
     crmItems.push({k:'crmPhoto',lbl:'Фото клиента'});
     crmItems.push({k:'crmHair360',lbl:'Стрижка 360° (фото результата)'});
+  }
+  if(ct==='local'||ct==='winter'){
     crmItems.push({k:'crmCoffee',lbl:'Предпочтение по кофе отмечено',crit:false});
   }
   sections.push({title:'CRM — Altegio',items:crmItems});
